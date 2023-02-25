@@ -6,22 +6,19 @@ set -x RUSTUP_HOME $XDG_DATA_HOME/rustup
 set -x CARGO_HOME $XDG_DATA_HOME/cargo
 set -x GOPATH $HOME/.local/share/go
 
+# Neovim FTW!
 set -x EDITOR "nvim"
 set -x VISUAL "nvim"
+set -x MANPAGER "nvim +Man!"
 
 set -x LIBVA_DRIVER_NAME "i965"
 set -x DOTNET_CLI_TELEMETRY_OPTOUT 1
 set -x GOPROXY "direct"
+set -x BAT_THEME "gruvbox-dark"
 
 # Wayland
 set -x MOZ_ENABLE_WAYLAND 1
 set -x SDL_VIDEODRIVER wayland 
-#set -x QT_QPA_PLATFORMTHEME "qt5ct"
-
-# bat as manpager
-#set -x MANPAGER "sh -c 'col -bx | bat -l man -p'"
-set -x MANPAGER "nvim +Man!"
-#set -x BAT_THEME "gruvbox-dark"
 
 set fish_color_normal brwhite 
 set fish_color_autosuggestion '#7d7d7d' 
