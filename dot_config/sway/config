@@ -17,7 +17,7 @@ set $right l
 # Your preferred terminal emulator
 # Recommends: foot
 exec foot --server
-set $term footclient distrobox enter boxkit -- /usr/bin/fish
+set $term footclient distrobox enter caixola -- /usr/bin/fish
 set $hostterm footclient 
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
