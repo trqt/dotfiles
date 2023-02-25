@@ -11,14 +11,17 @@ set -x EDITOR "nvim"
 set -x VISUAL "nvim"
 set -x MANPAGER "nvim +Man!"
 
-set -x LIBVA_DRIVER_NAME "i965"
+# Dev
 set -x DOTNET_CLI_TELEMETRY_OPTOUT 1
 set -x GOPROXY "direct"
-set -x BAT_THEME "gruvbox-dark"
 
 # Wayland
 set -x MOZ_ENABLE_WAYLAND 1
 set -x SDL_VIDEODRIVER wayland 
+
+# Misc
+set -x LIBVA_DRIVER_NAME "i965"
+set -x BAT_THEME "gruvbox-dark"
 
 set fish_color_normal brwhite 
 set fish_color_autosuggestion '#7d7d7d' 
