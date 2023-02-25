@@ -15,8 +15,7 @@ set -x GOPROXY "direct"
 
 # Wayland
 set -x MOZ_ENABLE_WAYLAND 1
-set -x SDL_VIDEODRIVER wayland # A lot of broken programs
-#set -x SDL_VIDEODRIVER x11 
+set -x SDL_VIDEODRIVER wayland 
 #set -x QT_QPA_PLATFORMTHEME "qt5ct"
 
 # bat as manpager
