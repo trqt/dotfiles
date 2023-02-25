@@ -14,6 +14,7 @@ set -x MANPAGER "nvim +Man!"
 # Dev
 set -x DOTNET_CLI_TELEMETRY_OPTOUT 1
 set -x GOPROXY "direct"
+set -x RUSTC_WRAPPER "sccache"
 
 # Wayland
 set -x MOZ_ENABLE_WAYLAND 1
