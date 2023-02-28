@@ -76,5 +76,5 @@ if test -z (pgrep ssh-agent | string collect)
     set -Ux SSH_AGENT_PID $SSH_AGENT_PID
 end
 
-#direnv hook fish | source
+direnv hook fish | source
 
