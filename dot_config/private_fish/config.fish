@@ -1,10 +1,13 @@
 # Remove gretting message
 set fish_greeting  
 
+set -x XDG_DATA_HOME $HOME/.local/share
 # Freedesktop-fy home
 set -x RUSTUP_HOME $XDG_DATA_HOME/rustup  
 set -x CARGO_HOME $XDG_DATA_HOME/cargo
-set -x GOPATH $HOME/.local/share/go
+set -x GOPATH $XDG_DATA_HOME/go
+
+set -U fish_user_paths $CARGO_HOME/bin $RUSTUP_HOME/bin $fish_user_paths
 
 # Neovim FTW!
 set -x EDITOR "nvim"
