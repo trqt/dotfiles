@@ -2,12 +2,21 @@
 set fish_greeting  
 
 set -x XDG_DATA_HOME $HOME/.local/share
+set -x XDG_CONFIG_HOME $HOME/.config
+set -x XDG_STATE_HOME $HOME/.local/state
+set -x XDG_CACHE_HOME $HOME/.cache
 # Freedesktop-fy home
 set -x RUSTUP_HOME $XDG_DATA_HOME/rustup  
 set -x CARGO_HOME $XDG_DATA_HOME/cargo
 set -x GOPATH $XDG_DATA_HOME/go
+set -x SQLITE_HISTORY $XDG_CACHE_HOME/sqlite_history
+set -x BUNDLE_USER_CONFIG $XDG_CONFIG_HOME/bundle
+set -x BUNDLE_USER_CACHE $XDG_CACHE_HOME/bundle
+set -x BUNDLE_USER_PLUGIN $XDG_DATA_HOME/bundle
+set -x WINEPREFIX $XDG_DATA_HOME/wine
+set -x LESSHISTFILE $XDG_CACHE_HOME/less_history
 
-set -U fish_user_paths $CARGO_HOME/bin $RUSTUP_HOME/bin $fish_user_paths
+set -U fish_user_paths $CARGO_HOME/bin $RUSTUP_HOME/bin $GOPATH/bin $fish_user_paths
 
 # Neovim FTW!
 set -x EDITOR "nvim"
