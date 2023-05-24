@@ -1,11 +1,3 @@
-# Default config for sway
-#
-# Copy this to ~/.config/sway/config and edit it to your liking.
-#
-# Read `man 5 sway` for a complete reference.
-
-### Variables
-#
 # Logo key. Use Mod1 for Alt.
 set $mod Mod4
 set $alt Mod1
@@ -14,15 +6,16 @@ set $left h
 set $down j
 set $up k
 set $right l
-# Your preferred terminal emulator
-# Recommends: foot
+
+# Terminal
 exec foot --server
-set $term footclient distrobox enter caixola -- /usr/bin/fish
-set $hostterm footclient 
-# Your preferred application launcher
-# Note: pass the final command to swaymsg so that the resulting window can be opened
-# on the original workspace that the command was run on.
-# Recommends: rofi-wayland
+set $term footclient 
+
+# Start Pipewire in Non-systemd systems
+exec pipewire
+exec pipewire-pulse
+
+# App Launcher
 set $rofi_cmd rofi \
         -run-command 'swaymsg exec -- {cmd}' \
         -run-shell-command 'swaymsg exec -- {terminal} -e {cmd}' \
@@ -32,52 +25,32 @@ set $rofi_cmd rofi \
 # TODO: add window with the next release of rofi-wayland
 set $menu $rofi_cmd -show combi -combi-modes drun#run -modes combi
 
-### Output configuration
-#
-# Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
-# Requires: desktop-backgrounds-compat, swaybg
-output * bg /usr/share/backgrounds/default.png fill
-#
-# Example configuration:
-#
-#   output HDMI-A-1 resolution 1920x1080 position 1920,0
-#
-# You can get the names of your outputs by running: swaymsg -t get_outputs
+# Wallpaper
+output * bg $HOME/media/pics/wpp.jpg fill
 
-### Idle configuration
-#
-# Example configuration:
-#
-# exec swayidle -w \
-#          timeout 300 'swaylock -f -c 000000' \
-#          timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
-#          before-sleep 'swaylock -f -c 000000'
-#
-# This will lock your screen after 300 seconds of inactivity, then turn off
-# your displays after another 300 seconds, and turn your screens back on when
-# resumed. It will also lock your screen before your computer goes to sleep.
+# Lock Screen on idle
+exec swayidle -w \
+         timeout 300 'swaylock -f -c 000000' \
+         timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
+         before-sleep 'swaylock -f -c 000000'
 
-### Input configuration
-#
-# Example configuration:
-#
-#   input "2:14:SynPS/2_Synaptics_TouchPad" {
-#       dwt enabled
-#       tap enabled
-#       natural_scroll enabled
-#       middle_emulation enabled
-#   }
-#
-# You can get the names of your inputs by running: swaymsg -t get_inputs
-# Read `man 5 sway-input` for more information about this section.
+input type:keyboard {
+    xkb_layout "br" 
+    xkb_variant "thinkpad"
 
+    repeat_delay 200
+    repeat_rate 30
+}
+input type:pointer {
+    accel_profile adaptive
+    pointer_accel 1
+}
 ### Key bindings
 #
 # Basics:
 #
     # Start a terminal
     bindsym $mod+Return exec $term
-    bindsym $mod+Shift+Return exec $hostterm
 
     # Kill focused window
     bindsym $mod+Shift+c kill
@@ -85,11 +58,7 @@ output * bg /usr/share/backgrounds/default.png fill
     # Start your launcher
     bindsym $mod+d exec $menu
 
-    # Drag floating windows by holding down $mod and left mouse button.
-    # Resize them with right mouse button + $mod.
-    # Despite the name, also works for non-floating windows.
-    # Change normal to inverse to use left mouse button for resizing and right
-    # mouse button for dragging.
+    # Drag windows with super+mouse
     floating_modifier $mod normal
 
     # Reload the configuration file
@@ -210,28 +179,49 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
-# Include configs from 3 locations:
-#  - /usr/share/sway/config.d
-#  - /etc/sway/config.d
-#  - $XDG_CONFIG_HOME/sway/config.d ($HOME/.config/sway/config.d)
-#
-# If multiple directories contain the files with the same name, the later
-# directory takes precedence; `$XDG_CONFIG_HOME/sway/config.d/20-swayidle.conf`
-# will always be loaded instead of `/usr/share/sway/config.d/20-swayidle.conf`
-# or `/etc/sway/config.d/20-swayidle.conf`
-#
-# This mechanism permits overriding our default configuration per-system
-# (/etc) or per-user ($XDG_CONFIG_HOME) basis. Just create the file you
-# want to modify/override in the higher-level directory.
-#
-# For example, to disable the default bar from Fedora configs, you'll need to
-#     $ echo -n > "$HOME/.config/sway/config.d/90-bar.conf"
-#
-# Note the quoting, the $() and the arguments quoting. All the parts are equally
-# important to make the magic work. And if you want to learn the secret behind
-# the trick, it's all in the `wordexp(3)`.
-#
+# Audio keybinds
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle 
+bindsym XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle 
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5% 
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% 
 
-bindsym XF86ScreenSaver exec 'loginctl lock-session'
+# Misc Keybinds
+bindsym XF86Battery exec 'swaylock -f -c 000000'	
+bindsym Print exec 'grimshot copy area'	
+bindsym Shift+Print exec 'grimshot save screen'	
 
-include '$(/usr/libexec/sway/layered-include "/usr/share/sway/config.d/*.conf" "/etc/sway/config.d/*.conf" "${XDG_CONFIG_HOME:-$HOME/.config}/sway/config.d/*.conf")'
+# Remove borders
+for_window [class="^.*"] border pixel 1
+
+
+for_window [window_type="dialog"] floating enable
+for_window [window_role="dialog"] floating enable
+for_window [title="(?:Open|Save) (?:File|Folder|As)"] floating enable;
+for_window [title="(?:Open|Save) (?:File|Folder|As)"] resize set 800 600
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="bubble"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [window_role="Preferences"] floating enable
+for_window [window_type="menu"] floating enable
+
+# Set up gaps
+gaps inner 5
+gaps outer 3
+
+# Feed swaybar with i3status-rs
+bar {
+    font pango:IBM Plex Mono, FontAwesome 10
+    position top
+
+    status_command i3status-rs $XDG_CONFIG_HOME/i3status-rs/config.toml
+
+    colors {
+        separator #4F585E
+        background #1E2326
+        statusline #A7C080
+        focused_workspace #425047 #425047 #D3C6AA
+        active_workspace #232A2E #232A2E #A7C080
+        inactive_workspace #1E2326 #1E2326 #859289
+        urgent_workspace #E67E80 #E67E80 #5C6A72
+    }
+}
