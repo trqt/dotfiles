@@ -1,0 +1,11 @@
+theme = "catppuccin_mocha"
+
+[editor]
+line-number = "relative"
+mouse = false
+bufferline = "multiple"
+rulers = [80]
+
+[editor.cursor-shape]
+insert = "bar"
+select = "underline"
