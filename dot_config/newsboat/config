@@ -1,4 +1,4 @@
-include /usr/share/doc/newsboat/contrib/colorschemes/gruvbox
+include /usr/share/doc/newsboat/contrib/colorschemes/universal-color
 #show-read-feeds no
 reload-threads 20
 download-retries 4
