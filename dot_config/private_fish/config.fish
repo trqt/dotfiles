@@ -71,6 +71,17 @@ function la --wraps=ls --description 'List contents of directory, including hidd
     ls -lah $argv
 end
 
+function p --description 'Jumps to a project'
+    set -l proj_dir $HOME/proj
+    set -l project $(ls $proj_dir | sk --prompt "Switch to project: ")
+    cd $proj_dir/$project
+end
+
+function a --description 'Attach to session'
+    set -l sessions (zellij list-sessions | sk --prompt "Active sessions: ")
+    zellij attach $sessions
+end
+
 set -g fish_key_bindings fish_vi_key_bindings
 
 direnv hook fish | source
@@ -104,4 +115,5 @@ if status is-login
     set -x _JAVA_AWT_WM_NONREPARENTING 1
     dbus-run-session sway
 end
+
 
