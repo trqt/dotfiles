@@ -19,6 +19,8 @@ set -x LESSHISTFILE $XDG_CACHE_HOME/less_history
 set -x PASSWORD_STORE_DIR $XDG_DATA_HOME/pass
 set -x INPUTRC $XDG_CONFIG_HOME/readline/inputrc 
 set -x _JAVA_OPTIONS "-Djava.util.prefs.userRoot=$XDG_CONFIG_HOME/java" 
+set -x ANDROID_HOME $XDG_DATA_HOME/android
+set -x GDBHISTFILE $XDG_CONFIG_HOME/gdb/.gdb_history 
 
 set -U fish_user_paths $HOME/.local/bin ~/.nix-profile/bin $CARGO_HOME/bin $RUSTUP_HOME/bin $GOPATH/bin $FLYCTL_INSTALL/bin $fish_user_paths
 
@@ -31,6 +33,7 @@ set -x MANPAGER "nvim +Man!"
 set -x DOTNET_CLI_TELEMETRY_OPTOUT 1
 set -x GOPROXY "direct"
 set -x RUSTC_WRAPPER "sccache"
+set -x ASAN_SYMBOLIZER_PATH "/usr/bin/llvm-symbolizer"
 
 # Wayland
 set -x MOZ_ENABLE_WAYLAND 1
@@ -52,6 +55,7 @@ alias vim="nvim"
 alias em="emacsclient -t"
 alias zt="zathura"
 alias tors="torsocks"
+alias pgdb="gdb -q -n -x $XDG_CONFIG_HOME/gdb/init"
 
 alias ls="exa"
 
@@ -72,7 +76,7 @@ function la --wraps=ls --description 'List contents of directory, including hidd
 end
 
 function p --description 'Jumps to a project'
-    set -l proj_dir $HOME/proj
+    set -l proj_dir $HOME/dev
     set -l project $(ls $proj_dir | sk --prompt "Switch to project: ")
     cd $proj_dir/$project
 end
@@ -85,6 +89,7 @@ end
 set -g fish_key_bindings fish_vi_key_bindings
 
 direnv hook fish | source
+thefuck --alias | source
 
 if status is-interactive 
     set -gx ATUIN_NOBIND "true"
@@ -97,13 +102,13 @@ end
 
 if status is-login
     # unecessary with elogind
-    if test -z "$XDG_RUNTIME_DIR"
-        set -x XDG_RUNTIME_DIR "/tmp/$UID-runtime-dir"
-        if ! test -d "$XDG_RUNTIME_DIR"
-            mkdir "$XDG_RUNTIME_DIR"
-            chmod 0700 "$XDG_RUNTIME_DIR"
-        end
-    end
+    #if test -z "$XDG_RUNTIME_DIR"
+    #    set -x XDG_RUNTIME_DIR "/tmp/$UID-runtime-dir"
+    #    if ! test -d "$XDG_RUNTIME_DIR"
+    #        mkdir "$XDG_RUNTIME_DIR"
+    #        chmod 0700 "$XDG_RUNTIME_DIR"
+    #    end
+    #end
     
     # SSH-Agent
     if test -z (pgrep ssh-agent | string collect)
