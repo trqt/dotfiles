@@ -4,7 +4,7 @@ reload-threads 20
 download-retries 4
 download-timeout 60
 
-use-proxy yes
+#use-proxy yes
 proxy-type socks5
 proxy localhost:9050
 user-agent "Mozilla/5.0 (Windows NT 10.0; rv:102.0) Gecko/20100101 Firefox/102.0"
