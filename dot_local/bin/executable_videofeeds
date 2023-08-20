@@ -1,0 +1,2 @@
+#!/bin/sh
+newsboat -r -u ~/.config/newsboat/videourls -c ~/.local/share/newsboat/videocache.db
