@@ -1,6 +1,6 @@
 return {
     { "nvim-lua/plenary.nvim", lazy = true },
-    
+
     { "nvim-telescope/telescope.nvim", cmd = "Telescope", version = false,
         keys = {
             { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find Files (root dir)" },
@@ -17,6 +17,10 @@ return {
         keys = {
 	        { "<leader>gs", "<cmd>Git<cr>", desc = "Fugitive Git" }
 	    }
+    },
+    { "windwp/nvim-autopairs",
+        event = "InsertEnter",
+        opts = {}
     },
     { "github/copilot.vim", cmd = "Copilot" },
     { "catppuccin/nvim", lazy = true, name = "catppuccin" }
