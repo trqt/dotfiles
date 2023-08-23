@@ -18,14 +18,7 @@ set $term footclient
 #exec pipewire-pulse
 
 # App Launcher
-set $rofi_cmd rofi \
-        -run-command 'swaymsg exec -- {cmd}' \
-        -run-shell-command 'swaymsg exec -- {terminal} -e {cmd}' \
-        -terminal '$term'
-# Shows a combined list of the applications with desktop files and
-# executables from PATH.
-# TODO: add window with the next release of rofi-wayland
-set $menu $rofi_cmd -show combi -combi-modes drun#run -modes combi
+set $menu fuzzel
 
 # Wallpaper
 output * bg $HOME/media/pics/wpp.jpg fill
@@ -183,10 +176,10 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 
 # Audio keybinds
-bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle 
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle && pkill -RTMIN+10 i3blocks  
 bindsym XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle 
-bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5% 
-bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% 
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5% && pkill -RTMIN+10 i3blocks 
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% && pkill -RTMIN+10 i3blocks  
 
 bindsym XF86AudioPlay exec mpc toggle
 bindsym XF86AudioNext exec mpc next
@@ -220,7 +213,7 @@ bar {
     font pango:IBM Plex Mono, FontAwesome 10
     position top
 
-    status_command i3status-rs $XDG_CONFIG_HOME/i3status-rs/config.toml
+    status_command SCRIPT_DIR=~/.config/i3blocks i3blocks 
 
     colors {
         separator #4F585E
