@@ -30,7 +30,7 @@ format = " $icon $mem_used.eng(w:2) "
 block = "sound"
 [[block.click]]
 button = "left"
-cmd = "pavucontrol-qt"
+cmd = "pavucontrol"
 
 [[block]]
 block = "time"
