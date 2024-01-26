@@ -23,5 +23,5 @@ return {
         opts = {}
     },
     { "github/copilot.vim", cmd = "Copilot" },
-    { "catppuccin/nvim", lazy = true, name = "catppuccin" }
+    { 'rose-pine/neovim', name = 'rose-pine' }
 }
