@@ -9,6 +9,7 @@ set -x XDG_CACHE_HOME $HOME/.cache
 set -x RUSTUP_HOME $XDG_DATA_HOME/rustup  
 set -x CARGO_HOME $XDG_DATA_HOME/cargo
 set -x GOPATH $XDG_DATA_HOME/go
+set -x OPAMROOT $XDG_DATA_HOME/opam
 set -x FLYCTL_INSTALL $XDG_DATA_HOME/fly
 set -x SQLITE_HISTORY $XDG_CACHE_HOME/sqlite_history
 set -x BUNDLE_USER_CONFIG $XDG_CONFIG_HOME/bundle
@@ -21,8 +22,10 @@ set -x INPUTRC $XDG_CONFIG_HOME/readline/inputrc
 set -x _JAVA_OPTIONS "-Djava.util.prefs.userRoot=$XDG_CONFIG_HOME/java" 
 set -x ANDROID_HOME $XDG_DATA_HOME/android
 set -x GDBHISTFILE $XDG_CONFIG_HOME/gdb/.gdb_history 
+set -x GNUPGHOME $XDG_DATA_HOME/gnupg
+set -x DOT_SAGE $XDG_CONFIG_HOME/sage
 
-set -U fish_user_paths $HOME/.local/bin ~/.nix-profile/bin $CARGO_HOME/bin $RUSTUP_HOME/bin $GOPATH/bin $FLYCTL_INSTALL/bin $fish_user_paths
+set -U fish_user_paths $HOME/.local/bin ~/.nix-profile/bin $CARGO_HOME/bin $RUSTUP_HOME/bin $GOPATH/bin $XDG_DATA_HOME/bob/nvim-bin $FLYCTL_INSTALL/bin $fish_user_paths
 
 # Neovim FTW!
 set -x EDITOR "nvim"
@@ -63,10 +66,6 @@ alias cp="cp -iv"
 alias mv="mv -iv" 
 alias rm="rm -iv" 
 
-for x in lynx profanity
-    alias $x="torsocks $x"
-end
-
 for x in mount umount apk ufw
     alias $x="sudo $x"
 end
@@ -77,19 +76,20 @@ end
 
 function p --description 'Jumps to a project'
     set -l proj_dir $HOME/dev
-    set -l project $(ls $proj_dir | sk --prompt "Switch to project: ")
+    set -l project $(ls $proj_dir | fzf --prompt "Switch to project: ")
     cd $proj_dir/$project
+    tmux new -s $project
 end
 
 function a --description 'Attach to session'
-    set -l sessions (zellij list-sessions | sk --prompt "Active sessions: ")
-    zellij attach $sessions
+    set -l sessions (tmux list-sessions | fzf --prompt "Active sessions: ")
+    set -l session (echo $sessions | cut -d' ' -f1 | tr -d ":")
+    tmux attach -t $session
 end
 
 set -g fish_key_bindings fish_vi_key_bindings
 
 direnv hook fish | source
-thefuck --alias | source
 
 if status is-interactive 
     set -gx ATUIN_NOBIND "true"
@@ -116,9 +116,18 @@ if status is-login
         set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
         set -Ux SSH_AGENT_PID $SSH_AGENT_PID
     end
-    
-    set -x _JAVA_AWT_WM_NONREPARENTING 1
-    dbus-run-session sway
+   	
+    if test -z "$DISPLAY" -a "$XDG_VTNR" = 1 
+	    set -x _JAVA_AWT_WM_NONREPARENTING 1
+	    sway
+    end
 end
 
+source /home/trqt/.local/share/opam/opam-init/init.fish > /dev/null 2> /dev/null; or true
 
+# pnpm
+set -gx PNPM_HOME "/home/trqt/.local/share/pnpm"
+if not string match -q -- $PNPM_HOME $PATH
+  set -gx PATH "$PNPM_HOME" $PATH
+end
+# pnpm end
