@@ -36,6 +36,9 @@
 ;; Set the font. Note: height = px * 100
 (set-face-attribute 'default nil :font "IBM Plex Mono" :height 120)
 
+;; yes/no to y/n
+(defalias 'yes-or-no-p 'y-or-n-p)
+
 ;; Add unique buffer names in the minibuffer where there are many
 ;; identical files. This is super useful if you rely on folders for
 ;; organization and have lots of files with the same name,
@@ -125,6 +128,13 @@
 ;; Transparency
 (add-to-list 'default-frame-alist '(alpha-background . 90)) 
 
+(use-package golden-ratio
+  :ensure t
+  :config
+  (setq golden-ratio-auto-scale t)
+  :init
+  (golden-ratio-mode 1))
+
 ;; Minibuffer completion is essential to your Emacs workflow and
 ;; Vertico is currently one of the best out there. There's a lot to
 ;; dive in here so I recommend checking out the documentation for more
@@ -176,6 +186,7 @@
   ;; assuming you have the respective LSP server installed.
   :hook ((go-mode . eglot-ensure)
          (rust-mode . eglot-ensure)
+         (tuareg-mode . eglot-ensure)
          (c-mode . eglot-ensure)
          (c++-mode . eglot-ensure)))
 
@@ -231,7 +242,7 @@
 ;; `org-mode' is great but Denote makes it even better by adding
 ;; features that you'd find in something like Obsidian (like
 ;; backlinks!). You can write your notes in org, markdown, or plain
-;; text, though I recommend giving `org-mode' a try if you've never
+;; text, though I recommend giving `Org-mode' a try if you've never
 ;; used it before. The Denote manual is also excellent:
 ;; https://protesilaos.com/emacs/denote
 (use-package denote
@@ -239,7 +250,9 @@
   :custom
   (denote-known-keywords '("emacs" "journal"))
   ;; This is the directory where your notes live.
-  (denote-directory (expand-file-name "~/denote/"))
+  (denote-directory (expand-file-name "~/docs/denote/"))
+  :config
+  (require 'ox-md)
   :bind
   (("C-c n n" . denote)
    ("C-c n f" . denote-open-or-create)
@@ -286,6 +299,14 @@
          (lisp-interaction-mode . enable-paredit-mode)
          (scheme-mode . enable-paredit-mode)))
 
+(use-package treesit-auto
+  :ensure t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
 (use-package go-mode
   :ensure t
   :bind (:map go-mode-map
@@ -312,6 +333,11 @@
 	      ("C-c C-t" . 'rust-test))
   :hook (rust-mode . prettify-symbols-mode))
 
+;; OCaml
+(use-package tuareg
+  :ensure t
+  :mode (("\\.ocamlinit\\'" . tuareg-mode)))
+
 ;; Matrix support
 (use-package ement
   :ensure t
@@ -323,5 +349,5 @@
   :bind (("C-c w" . 'elfeed)))
 
 ;; Personal stuff
-(load "~/.config/emacs/private.el")
+;(load "~/.config/emacs/private.el")
 
