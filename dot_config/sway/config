@@ -213,7 +213,7 @@ bar {
     font pango:IBM Plex Mono, FontAwesome 10
     position top
 
-    status_command SCRIPT_DIR=~/.config/i3blocks i3blocks 
+    status_command i3status-rs
 
     colors {
         separator #4F585E
