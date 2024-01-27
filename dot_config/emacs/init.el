@@ -28,6 +28,44 @@
 ;; Stop annoying warnings
 (setq native-comp-async-report-warnings-errors nil)
 
+;; Boostrap elpaca
+(defvar elpaca-installer-version 0.6)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (< emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (call-process "git" nil buffer t "clone"
+                                       (plist-get order :repo) repo)))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
+
 ;; Remove extra UI clutter by hiding the scrollbar, menubar, and toolbar.
 (menu-bar-mode -1)
 (tool-bar-mode -1)
@@ -87,41 +125,19 @@
       ;; separate file, custom.el, to keep your init.el clean.
       custom-file (expand-file-name "custom.el" user-emacs-directory))
 
-;; Bring in package utilities so we can install packages from the web.
-(require 'package)
+;; Elpaca use-package integration
+(elpaca elpaca-use-package
+  ;; Enable :elpaca use-package keyword.
+  (elpaca-use-package-mode)
+  ;; Assume :elpaca t unless otherwise specified.
+  (setq elpaca-use-package-by-default t))
 
-;; Add MELPA, an unofficial (but well-curated) package registry to the
-;; list of accepted package registries. By default Emacs only uses GNU
-;; ELPA and NonGNU ELPA, https://elpa.gnu.org/ and
-;; https://elpa.nongnu.org/ respectively.
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-
-;; Unless we've already fetched (and cached) the package archives,
-;; refresh them.
-(unless package-archive-contents
-  (package-refresh-contents))
-
-;; Add the :vc keyword to use-package, making it easy to install
-;; packages directly from git repositories.
-(unless (package-installed-p 'vc-use-package)
-  (package-vc-install "https://github.com/slotThe/vc-use-package"))
-(require 'vc-use-package)
-
-;; A quick primer on the `use-package' function (refer to
-;; "C-h f use-package" for the full details).
-;;
-;; (use-package my-package-name
-;;   :ensure t    ; Ensure my-package is installed
-;;   :after foo   ; Load my-package after foo is loaded (seldom used)
-;;   :init        ; Run this code before my-package is loaded
-;;   :bind        ; Bind these keys to these functions
-;;   :custom      ; Set these variables
-;;   :config      ; Run this code after my-package is loaded
+;; Wait until current queue is empty
+(elpaca-wait)
 
 ;; A package with a great selection of themes:
 ;; https://protesilaos.com/emacs/ef-themes
 (use-package ef-themes
-  :ensure t
   :config
   (ef-themes-select 'ef-autumn))
 
@@ -129,7 +145,6 @@
 (add-to-list 'default-frame-alist '(alpha-background . 90)) 
 
 (use-package golden-ratio
-  :ensure t
   :config
   (setq golden-ratio-auto-scale t)
   :init
@@ -142,7 +157,6 @@
 ;; sweet of it is that you search for commands with "M-x do-thing" and
 ;; the minibuffer will show you a filterable list of matches.
 (use-package vertico
-  :ensure t
   :custom
   (vertico-cycle t)
   (read-buffer-completion-ignore-case t)
@@ -156,7 +170,6 @@
 ;; "M-x find-file".
 (use-package marginalia
   :after vertico
-  :ensure t
   :init
   (marginalia-mode))
 
@@ -165,7 +178,6 @@
 ;; match your editing preferences, there's no one-size-fits-all
 ;; solution.
 (use-package corfu
-  :ensure t
   :init
   (global-corfu-mode)
   :custom
@@ -179,7 +191,7 @@
 ;; server installed on your machine to use it with Eglot. e.g.
 ;; rust-analyzer to use Eglot with `rust-mode'.
 (use-package eglot
-  :ensure t
+  :elpaca nil
   :bind (("s-<mouse-1>" . eglot-find-implementation)
          ("C-c ." . eglot-code-action-quickfix))
   ;; Add your programming modes here to automatically start Eglot,
@@ -194,7 +206,6 @@
 ;; search and understand. This configuration uses the keybindings 
 ;; recommended by the package author.
 (use-package helpful
-  :ensure t
   :bind (("C-h f" . #'helpful-callable)
          ("C-h v" . #'helpful-variable)
          ("C-h k" . #'helpful-key)
@@ -204,7 +215,6 @@
 
 ;; Which key, make the commands more accessible
 (use-package which-key
-  :ensure t
   :init
   (which-key-mode 1)
   :config
@@ -226,7 +236,7 @@
 ;; keybindings that Evil needs to modify, so this configuration also
 ;; includes `evil-collection' to fill in the gaps.
 (use-package evil
-  :ensure t
+  :demand t
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -235,7 +245,6 @@
 
 (use-package evil-collection
   :after evil
-  :ensure t
   :config
   (evil-collection-init))
 
@@ -246,7 +255,6 @@
 ;; used it before. The Denote manual is also excellent:
 ;; https://protesilaos.com/emacs/denote
 (use-package denote
-  :ensure t
   :custom
   (denote-known-keywords '("emacs" "journal"))
   ;; This is the directory where your notes live.
@@ -260,22 +268,11 @@
 
 ;; An extremely feature-rich git client. Activate it with "C-c g".
 (use-package magit
-  :ensure t
   :bind (("C-c g" . magit-status)))
 
-;; In addition to installing packages from the configured package
-;; registries, you can also install straight from version control
-;; with the :vc keyword argument. For the full list of supported
-;; fetchers, view the documentation for the variable
-;; `vc-use-package-fetchers'.
-;;
-;; Breadcrumb adds, well, breadcrumbs to the top of your open buffers
-;; and works great with project.el, the Emacs project manager.
-;;
-;; Read more about projects here:
-;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Projects.html
+;; Make focused windows more obvious
 (use-package breadcrumb
-  :vc (:fetcher github :repo joaotavora/breadcrumb)
+  :elpaca (:fetcher github :repo "joaotavora/breadcrumb")
   :init (breadcrumb-mode))
 
 ;; As you've probably noticed, Lisp has a lot of parentheses.
@@ -292,7 +289,6 @@
 ;; http://danmidwood.com/content/2014/11/21/animated-paredit.html
 ;; https://stackoverflow.com/a/5243421/3606440
 (use-package paredit
-  :ensure t
   :hook ((emacs-lisp-mode . enable-paredit-mode)
          (lisp-mode . enable-paredit-mode)
          (ielm-mode . enable-paredit-mode)
@@ -300,7 +296,6 @@
          (scheme-mode . enable-paredit-mode)))
 
 (use-package treesit-auto
-  :ensure t
   :custom
   (treesit-auto-install 'prompt)
   :config
@@ -308,13 +303,11 @@
   (global-treesit-auto-mode))
 
 (use-package go-mode
-  :ensure t
   :bind (:map go-mode-map
 	      ("C-c C-f" . 'gofmt))
   :hook (before-save . gofmt-before-save))
 
 (use-package markdown-mode
-  :ensure t
   ;; These extra modes help clean up the Markdown editing experience.
   ;; `visual-line-mode' turns on word wrap and helps editing commands
   ;; work with paragraphs of text. `flyspell-mode' turns on an
@@ -325,7 +318,6 @@
   (setq markdown-command "multimarkdown"))
 
 (use-package rust-mode
-  :ensure t
   :bind (:map rust-mode-map
 	      ("C-c C-r" . 'rust-run)
 	      ("C-c C-c" . 'rust-compile)
@@ -335,17 +327,14 @@
 
 ;; OCaml
 (use-package tuareg
-  :ensure t
   :mode (("\\.ocamlinit\\'" . tuareg-mode)))
 
 ;; Matrix support
 (use-package ement
-  :ensure t
-  :vc (ement :fetcher github :repo "alphapapa/ement.el"))
+  :elpaca (:fetcher github :repo "alphapapa/ement.el"))
 
 ;; RSS support
 (use-package elfeed
-  :ensure t
   :bind (("C-c w" . 'elfeed)))
 
 ;; Personal stuff
