@@ -21,7 +21,7 @@ set $term footclient
 set $menu fuzzel
 
 # Wallpaper
-output * bg $HOME/media/pics/wpp.jpg fill
+output * bg $HOME/media/pics/wpp.png fill
 
 # Lock Screen on idle
 exec swayidle -w \
