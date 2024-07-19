@@ -13,41 +13,50 @@ map i recolor
 map p print
 map g goto top
 
-set default-fg                "#CDD6F4"
-set default-bg 			          "#1E1E2E"
+set zoom-center "true"
+set database "sqlite"
 
-set completion-bg		          "#313244"
-set completion-fg		          "#CDD6F4"
-set completion-highlight-bg	  "#575268"
-set completion-highlight-fg	  "#CDD6F4"
-set completion-group-bg		    "#313244"
-set completion-group-fg		    "#89B4FA"
+set notification-error-bg       "#ebdbb2" # bg
+set notification-error-fg       "#9d0006" # bright:red
+set notification-warning-bg     "#ebdbb2" # bg
+set notification-warning-fg     "#b57614" # bright:yellow
+set notification-bg             "#ebdbb2" # bg
+set notification-fg             "#3c3836" # fg
 
-set statusbar-fg		          "#CDD6F4"
-set statusbar-bg		          "#313244"
+set completion-bg               "#d5c4a1" # bg2
+set completion-fg               "#3c3836" # fg
+set completion-group-bg         "#ebdbb2" # bg1
+set completion-group-fg         "#928374" # gray
+set completion-highlight-bg     "#076678" # bright:blue
+set completion-highlight-fg     "#d5c4a1" # bg2
 
-set notification-bg		        "#313244"
-set notification-fg		        "#CDD6F4"
-set notification-error-bg	    "#313244"
-set notification-error-fg	    "#F38BA8"
-set notification-warning-bg	  "#313244"
-set notification-warning-fg	  "#FAE3B0"
+# Define the color in index mode
+set index-bg                    "#d5c4a1" # bg2
+set index-fg                    "#3c3836" # fg
+set index-active-bg             "#3c3836" # fg
+set index-active-fg             "#d5c4a1" # bg2
 
-set inputbar-fg			          "#CDD6F4"
-set inputbar-bg 		          "#313244"
+set inputbar-bg                 "#ebdbb2" # bg
+set inputbar-fg                 "#3c3836" # fg
 
-set recolor-lightcolor		    "#1E1E2E"
-set recolor-darkcolor		      "#CDD6F4"
+set statusbar-bg                "#d5c4a1" # bg2
+set statusbar-fg                "#3c3836" # fg
+set statusbar-v-padding         7
 
-set index-fg			            "#CDD6F4"
-set index-bg			            "#1E1E2E"
-set index-active-fg		        "#CDD6F4"
-set index-active-bg		        "#313244"
+# set highlight-color             "#bdae93" # light
+# set highlight-active-color      "#d5c4a1" # dark
+set highlight-color "rgba(0,0,0,0.1)"
+set highlight-active-color "rgba(0,0,0,0.1)"
 
-set render-loading-bg		      "#1E1E2E"
-set render-loading-fg		      "#CDD6F4"
+set default-bg                  "#1d2021" # bg
+set default-fg                  "#3c3836" # fg
+set render-loading              true
+set render-loading-bg           "#ebdbb2" # bg
+set render-loading-fg           "#3c3836" # fg
 
-set highlight-color		        "#575268"
-set highlight-fg              "#F5C2E7"
-set highlight-active-color	  "#F5C2E7"
-
+# Recolor book content's color
+set recolor-lightcolor          "#ebdbb2" # bg
+set recolor-darkcolor           "#3c3836" # fg
+set recolor                     true
+# set recolor-keephue             true      # keep original color
+# set recolor-reverse-video       "true"
