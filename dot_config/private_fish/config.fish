@@ -19,11 +19,19 @@ set -x WINEPREFIX $XDG_DATA_HOME/wine
 set -x LESSHISTFILE $XDG_CACHE_HOME/less_history
 set -x PASSWORD_STORE_DIR $XDG_DATA_HOME/pass
 set -x INPUTRC $XDG_CONFIG_HOME/readline/inputrc 
-set -x _JAVA_OPTIONS "-Djava.util.prefs.userRoot=$XDG_CONFIG_HOME/java" 
+set -x _JAVA_OPTIONS "-Djava.util.prefs.userRoot=$XDG_CONFIG_HOME/java -Dawt.useSystemAAFontSettings=on" 
+set -x DOTNET_CLI_HOME $XDG_DATA_HOME/dotnet
 set -x ANDROID_HOME $XDG_DATA_HOME/android
 set -x GDBHISTFILE $XDG_CONFIG_HOME/gdb/.gdb_history 
 set -x GNUPGHOME $XDG_DATA_HOME/gnupg
 set -x DOT_SAGE $XDG_CONFIG_HOME/sage
+set -x GHCUP_USE_XDG_DIRS "When nix?"
+set -x STACK_XDG "why"
+set -x NODE_REPL_HISTORY $XDG_DATA_HOME/node_repl_history  
+set -x NUGET_PACKAGES $XDG_CACHE_HOME/nugetpkgs 
+set -x PYTHON_HISTORY $XDG_DATA_HOME/python_history
+set -x TEXMFVAR $XDG_CACHE_HOME/texlive/texmf-var
+set -x GRADLE_USER_HOME $XDG_DATA_HOME/gradle
 
 set -U fish_user_paths $HOME/.local/bin ~/.nix-profile/bin $CARGO_HOME/bin $RUSTUP_HOME/bin $GOPATH/bin $XDG_DATA_HOME/bob/nvim-bin $FLYCTL_INSTALL/bin $fish_user_paths
 
@@ -45,6 +53,7 @@ set -x SDL_VIDEODRIVER wayland
 # Misc
 set -x LIBVA_DRIVER_NAME "i965"
 set -x BAT_THEME "Catppuccin-mocha"
+set -x FIREJAIL_QUIET "yes"
 
 set fish_color_normal brwhite 
 set fish_color_autosuggestion '#7d7d7d' 
@@ -54,17 +63,22 @@ set fish_color_param bryellow
 
 
 # Aliases
-alias vim="nvim"
+alias v="nvim"
 alias em="emacsclient -t"
 alias zt="zathura"
 alias tors="torsocks"
-alias pgdb="gdb -q -n -x $XDG_CONFIG_HOME/gdb/init"
+alias pgdb="gdb -q -n -x $XDG_CONFIG_HOME/gdb/pwninit"
+alias gdb="gdb -q -n -x $XDG_CONFIG_HOME/gdb/init"
+
+alias yt264="yt-dlp -S 'codec:h264,res:720'"
 
 alias ls="exa"
 
 alias cp="cp -iv" 
 alias mv="mv -iv" 
 alias rm="rm -iv" 
+
+alias scc="scc --no-cocomo"
 
 for x in mount umount apk ufw
     alias $x="sudo $x"
@@ -78,7 +92,8 @@ function p --description 'Jumps to a project'
     set -l proj_dir $HOME/dev
     set -l project $(ls $proj_dir | fzf --prompt "Switch to project: ")
     cd $proj_dir/$project
-    tmux new -s $project
+    tmux has-session -t $project 2>/dev/null || tmux new-session -d -s $project
+    tmux attach -t $project
 end
 
 function a --description 'Attach to session'
@@ -101,21 +116,8 @@ if status is-interactive
 end
 
 if status is-login
-    # unecessary with elogind
-    #if test -z "$XDG_RUNTIME_DIR"
-    #    set -x XDG_RUNTIME_DIR "/tmp/$UID-runtime-dir"
-    #    if ! test -d "$XDG_RUNTIME_DIR"
-    #        mkdir "$XDG_RUNTIME_DIR"
-    #        chmod 0700 "$XDG_RUNTIME_DIR"
-    #    end
-    #end
-    
-    # SSH-Agent
-    if test -z (pgrep ssh-agent | string collect)
-        eval (ssh-agent -c)
-        set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
-        set -Ux SSH_AGENT_PID $SSH_AGENT_PID
-    end
+    # SSH-Agent via systemd unit service
+    set -x SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
    	
     if test -z "$DISPLAY" -a "$XDG_VTNR" = 1 
 	    set -x _JAVA_AWT_WM_NONREPARENTING 1
@@ -131,3 +133,5 @@ if not string match -q -- $PNPM_HOME $PATH
   set -gx PATH "$PNPM_HOME" $PATH
 end
 # pnpm end
+
+fish_add_path -a /home/trqt/.config/.foundry/bin
