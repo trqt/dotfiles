@@ -32,7 +32,10 @@ return {
     },
     ---@type TSConfig
     opts = {
-      highlight = { enable = true },
+      highlight = {
+        enable = true,
+        disable = { "latex", },
+      },
       indent = { enable = true },
       auto_install = true,
       ensure_installed = {

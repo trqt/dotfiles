@@ -3,4 +3,4 @@ require("trqt.set")
 require("trqt.lazy")
 require("trqt.lsp")
 
-vim.cmd.colorscheme("rose-pine")
+vim.cmd.colorscheme("melange")

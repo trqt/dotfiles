@@ -1,13 +1,6 @@
 return {
     { "nvim-lua/plenary.nvim", lazy = true },
 
-    { "nvim-telescope/telescope.nvim", cmd = "Telescope", version = false,
-        keys = {
-            { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find Files (root dir)" },
-            { "<C-p>", "<cmd>Telescope git_files<cr>", desc = "Git Files (root dir)" },
-            { "<leader>fs", "<cmd>Telescope live_grep<cr>", desc = "Grep Files (root dir)" }
-        }
-    },
     { "mbbill/undotree", cmd = "UndotreeToggle",
         keys = {
 	        { "<leader>u", "<cmd>UndotreeToggle<cr>", desc = "Toggle Undotree"}
@@ -23,5 +16,19 @@ return {
         opts = {}
     },
     { "github/copilot.vim", cmd = "Copilot" },
-    { 'rose-pine/neovim', name = 'rose-pine' }
+    --[[{ "m4xshen/hardtime.nvim",
+       dependencies = { "MunifTanjim/nui.nvim", "nvim-lua/plenary.nvim" },
+       opts = {}
+    },]]--
+    { "lervag/vimtex", lazy = false,
+        init = function()
+            vim.g.vimtex_view_method = "sioyek"
+        end
+    },
+    { "folke/todo-comments.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        config = function() require('todo-comments').setup() end,
+    },
+    { "savq/melange-nvim" },
+    { "rebelot/kanagawa.nvim" }
 }
