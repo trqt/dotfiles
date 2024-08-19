@@ -11,14 +11,14 @@ set $right l
 
 # Terminal
 exec foot --server
-set $term footclient 
+set $term footclient
 
 # Start Pipewire in Non-systemd systems
 #exec pipewire
 #exec pipewire-pulse
 
 # App Launcher
-set $menu fuzzel
+set $menu rofi -drun-match-fields name -show drun -show-icons
 
 # Wallpaper
 output * bg $HOME/media/pics/wpp.png fill
@@ -32,7 +32,7 @@ exec swayidle -w \
 input type:keyboard {
     xkb_layout "br" 
     xkb_variant "thinkpad"
-    xkb_options caps:escape
+    xkb_options caps:ctrl_modifier
 
     repeat_delay 200
     repeat_rate 30
@@ -50,6 +50,9 @@ input type:pointer {
 
     # Kill focused window
     bindsym $mod+Shift+c kill
+   
+    # Dimiss notifications
+    bindsym $mod+Shift+a exec makoctl dismiss -a
 
     # Start your launcher
     bindsym $mod+d exec $menu
@@ -176,10 +179,10 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 
 # Audio keybinds
-bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle && pkill -RTMIN+10 i3blocks  
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
 bindsym XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle 
-bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5% && pkill -RTMIN+10 i3blocks 
-bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% && pkill -RTMIN+10 i3blocks  
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% 
 
 bindsym XF86AudioPlay exec mpc toggle
 bindsym XF86AudioNext exec mpc next
@@ -192,7 +195,6 @@ bindsym Shift+Print exec 'grimshot save screen'
 
 # Remove borders
 for_window [class="^.*"] border pixel 1
-
 
 for_window [window_type="dialog"] floating enable
 for_window [window_role="dialog"] floating enable
