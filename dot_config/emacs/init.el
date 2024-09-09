@@ -7,59 +7,18 @@
 ;; Stop annoying warnings
 (setq native-comp-async-report-warnings-errors nil)
 
-;; Bootstrap elpaca
-(defvar elpaca-installer-version 0.7)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-       (build (expand-file-name "elpaca/" elpaca-builds-directory))
-       (order (cdr elpaca-order))
-       (default-directory repo))
-  (add-to-list 'load-path (if (file-exists-p build) build repo))
-  (unless (file-exists-p repo)
-    (make-directory repo t)
-    (when (< emacs-major-version 28) (require 'subr-x))
-    (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let ((depth (plist-get order :depth)))
-                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                 ,(plist-get order :repo) ,repo))))
-                 ((zerop (call-process "git" nil buffer t "checkout"
-                                       (or (plist-get order :ref) "--"))))
-                 (emacs (concat invocation-directory invocation-name))
-                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                 ((require 'elpaca))
-                 ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
-      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-  (unless (require 'elpaca-autoloads nil t)
-    (require 'elpaca)
-    (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
-(add-hook 'after-init-hook #'elpaca-process-queues)
-(elpaca `(,@elpaca-order))
-
 ;; Remove extra UI clutter by hiding the scrollbar, menubar, and toolbar.
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-
 ;; Emoji: 😄, 🤦, 🏴, ,  ;; should render as 3 color emojis and 2 glyphs
 (defun trqt/set-fonts ()
   "Set the emoji and glyph fonts."
   (when (display-graphic-p)
       (set-fontset-font t 'symbol "Noto Color Emoji" nil 'prepend)
       ;; Set the font. Note: height = px * 100
-      (set-face-attribute 'default nil :font "Fantasque Sans Mono" :height 110)
-      (set-face-attribute 'fixed-pitch nil :font "Fantasque Sans Mono" :height 110)
+      (set-face-attribute 'default nil :font "Fantasque Sans Mono" :height 130)
+      (set-face-attribute 'fixed-pitch nil :font "Fantasque Sans Mono" :height 130)
 
       ;; variable pitch font
       (set-face-attribute 'variable-pitch nil :font "Libertinus Sans" :height 140 :weight 'normal)
@@ -103,8 +62,6 @@
 (setq display-line-numbers-type 'relative)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
-;; The `setq' special form is used for setting variables. Remember
-;; that you can look up these variables with "C-h v variable-name".
 (setq uniquify-buffer-name-style 'forward
       window-resize-pixelwise t
       frame-resize-pixelwise t
@@ -112,15 +69,7 @@
       ;; indent or auto complete
       tab-always-indent 'complete 
       backup-by-copying t
-      ;; Backups are placed into your Emacs directory, e.g. ~/.config/emacs/backups
-      ;;backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
-      ;; I'll add an extra note here since user customizations are important.
-      ;; Emacs actually offers a UI-based customization menu, "M-x customize".
-      ;; You can use this menu to change variable values across Emacs. By default,
-      ;; changing a variable will write to your init.el automatically, mixing
-      ;; your hand-written Emacs Lisp with automatically-generated Lisp from the
-      ;; customize menu. The following setting instead writes customizations to a
-      ;; separate file, custom.el, to keep your init.el clean.
+      ;; dont write auto-generated lisp in init.el 
       custom-file (expand-file-name "custom.el" user-emacs-directory))
 
 ;; Nicer scrolling
@@ -131,15 +80,16 @@
     (progn
       (xterm-mouse-mode 1)))
 
-;; Elpaca use-package integration
-(elpaca elpaca-use-package
-  ;; Enable :elpaca use-package keyword.
-  (elpaca-use-package-mode)
-  ;; Assume :elpaca t unless otherwise specified.
-  (setq elpaca-use-package-by-default t))
+;; Package management
+(setq package-install-upgrade-built-in 't)
+(setopt use-package-always-ensure t)
+(unless (package-installed-p 'vc-use-package)
+  (package-vc-install "https://github.com/slotThe/vc-use-package"))
+(require 'vc-use-package)
 
-;; Wait until current queue is empty
-(elpaca-wait)
+(with-eval-after-load 'package
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
+
 
 ;; No rubbish in my home!
 (use-package no-littering
@@ -151,8 +101,12 @@
 
 ;; A package with a great selection of themes
 (use-package ef-themes
+  :custom
+  (ef-themes-to-toggle '(ef-autumn ef-eagle))
+  (ef-themes-mixed-font t)
   :config
-  (ef-themes-select 'ef-autumn))
+  (ef-themes-select 'ef-eagle))
+
 
 ;; Transparency
 (add-to-list 'default-frame-alist '(alpha-background . 90)) 
@@ -160,6 +114,7 @@
 ;; Die DocView
 (defalias 'doc-view-mode #'doc-view-fallback-mode) ;Or fundamental-mode, ...
 
+;; Make the windows more visible
 (use-package golden-ratio
   :custom
   (golden-ratio-auto-scale t)
@@ -200,7 +155,25 @@
   ;; You may want to play with delay/prefix/styles to suit your preferences.
   ;; (corfu-auto-delay 0)
   ;; (corfu-auto-prefix 0)
-  (completion-styles '(basic)))
+  ;;(completion-styles '(basic))
+  )
+
+(use-package cape
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-emoji)
+  (add-to-list 'completion-at-point-functions #'cape-tex))
+
+(use-package corfu-popupinfo
+  :after corfu
+  :ensure nil
+  :hook (corfu-mode . corfu-popupinfo-mode)
+  :custom
+  (corfu-popupinfo-delay '(0.25 . 0.1))
+  (corfu-popupinfo-hide nil)
+  :config
+  (corfu-popupinfo-mode))
 
 ;; Make completion searching sound
 (use-package orderless
@@ -234,30 +207,52 @@
 ;; Contextual actions
 (use-package embark
   :demand t
-  :bind (("C-c a" . embark-act)))
+  :after avy
+  :bind (("C-c a" . embark-act))
+  :init
+  ;; Add the option to run embark when using avy
+  (defun trqt/avy-action-embark (pt)
+    (unwind-protect
+        (save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+
+  ;; After invoking avy-goto-char-timer, hit "." to run embark at the next
+  ;; candidate you select
+  (setf (alist-get ?. avy-dispatch-alist) 'trqt/avy-action-embark))
 
 (use-package embark-consult
   :ensure t)
 
 ;; LSP package
 (use-package eglot
-  :ensure nil
   :bind (("s-<mouse-1>" . eglot-find-implementation)
          ("C-c ." . eglot-code-action-quickfix)
          ("C-c ;" . eglot-code-actions))
   :hook ((go-mode . eglot-ensure)
          (rust-mode . eglot-ensure)
          (haskell-mode . eglot-ensure)
-         (tuareg-mode . eglot-ensure)
-         (python-mode . eglot-ensure)
+         (python-ts-mode . eglot-ensure)
          (java-mode . eglot-ensure)
-         (c-mode . eglot-ensure)
-         (c++-mode . eglot-ensure))
+         (c-ts-mode . eglot-ensure)
+         (c++-ts-mode . eglot-ensure))
   :custom
   (eglot-autoshutdown t)
   (eglot-confirm-server-initiated-edits nil) ;; DWIM, don't ask to change
+  (eglot-events-buffer-config '(:size 20000 :format short))
   :config
-  (fset #'jsonrpc--log-event #'ignore))
+  (fset #'jsonrpc--log-event #'ignore)) ;; Perfomance boost(?)
+
+
+;; Perfomance Boost!
+(use-package eglot-booster
+  :after eglot
+  :vc (:fetcher github :repo "jdtsmith/eglot-booster")
+
+  :config (eglot-booster-mode))
 
 ;; Add extra context to Emacs documentation to help make it easier to
 ;; search and understand. This configuration uses the keybindings 
@@ -320,6 +315,13 @@
   :hook
   (LaTeX-mode . evil-tex-mode))
 
+;; Blazing fast navigation
+
+(use-package avy
+  :demand t
+  :bind (("C-c j" . avy-goto-char-timer)))
+
+
 ;; Make org a bit prettier
 (setq-default org-startup-indented t
               org-pretty-entities t
@@ -333,6 +335,7 @@
 (use-package org-modern
     :hook
     (org-mode . global-org-modern-mode)
+    (org-mode . visual-line-mode)
     (org-mode . variable-pitch-mode))
 
 (use-package org-faces
@@ -352,8 +355,10 @@
 
 ;; Spell checking
 (use-package jinx
-  :bind (("M-$" . jinx-correct)
-         ("C-M-$" . jinx-languages)))
+  :custom
+  (jinx-languages "en_GB pt_BR")
+  :bind (("C-c DEL" . jinx-correct)
+         ("M-$" . jinx-languages)))
 
 ;; Why obsidian when we have public, free and of quality software
 (use-package denote
@@ -361,33 +366,27 @@
   (denote-known-keywords '("emacs" "journal"))
   ;; This is the directory where your notes live.
   (denote-directory (expand-file-name "~/docs/denote/"))
+  (denote-templates '((review . "Author: \n\n* Resumo\n\n* Interpretação")))
   :config
   (require 'ox-md)
+  (require 'denote-journal-extras)
+  (denote-rename-buffer-mode)
   :bind
   (("C-c n n" . denote)
    ("C-c n f" . denote-open-or-create)
-   ("C-c n i" . denote-link)))
+   ("C-c n t" . denote-template)
+   ("C-c n m" . denote-type)
+   ("C-c n i" . denote-link-or-create)))
 
-;; An extremely feature-rich git client. Activate it with "C-c g".
+;; Oh! Ma Git
 (use-package magit
   :bind (("C-c g" . magit-status)))
 
 ;; Make focused windows more obvious
 (use-package breadcrumb
-  :ensure (:fetcher github :repo "joaotavora/breadcrumb")
+  :vc (:fetcher github :repo "joaotavora/breadcrumb")
   :init (breadcrumb-mode))
 
-;; As you've probably noticed, Lisp has a lot of parentheses.
-;; Maintaining the syntactical correctness of these parentheses
-;; can be a pain when you're first getting started with Lisp,
-;; especially when you're fighting the urge to break up groups
-;; of closing parens into separate lines. Luckily we have
-;; Paredit, a package that maintains the structure of your
-;; parentheses for you. At first, Paredit might feel a little
-;; odd; you'll probably need to look at a tutorial (linked
-;; below) or read the docs before you can use it effectively.
-;; But once you pass that initial barrier you'll write Lisp
-;; code like it's second nature.
 ;; http://danmidwood.com/content/2014/11/21/animated-paredit.html
 ;; https://stackoverflow.com/a/5243421/3606440
 (use-package paredit
@@ -397,12 +396,20 @@
          (lisp-interaction-mode . enable-paredit-mode)
          (scheme-mode . enable-paredit-mode)))
 
-;; (use-package treesit-auto
-;;   :custom
-;;   (treesit-auto-install 'prompt)
-;;   :config
-;;   (treesit-auto-add-to-auto-mode-alist 'all)
-;;   (global-treesit-auto-mode))
+(use-package emacs
+  :ensure nil
+  :config
+  ;; Treesitter config
+  (setq major-mode-remap-alist
+        '((yaml-mode . yaml-ts-mode)
+          (bash-mode . bash-ts-mode)
+          (js2-mode . js-ts-mode)
+          (typescript-mode . typescript-ts-mode)
+          (json-mode . json-ts-mode)
+          (css-mode . css-ts-mode)
+          (c-mode . c-ts-mode)
+          (c++-mode . c++-ts-mode)
+          (python-mode . python-ts-mode))))
 
 (use-package go-mode
   :bind (:map go-mode-map
@@ -415,14 +422,20 @@
   (setq markdown-command "pandoc --mathml"))
 
 ;; C configs
-(use-package c-mode
+(use-package c-ts-mode
   :ensure nil
   :custom
   (c-default-style "bsd")
   (c-basic-offset 4)
-  :bind (:map c-mode-map
+  (c-ts-mode-indent-style 'bsd)
+  (c-ts-mode-indent-offset 4)
+  :bind (:map c-ts-mode-map
               ("C-c C-c" . compile)
               ("C-c C-f" . eglot-format)))
+
+;; Ruff for python
+(use-package flymake-ruff
+  :hook (eglot-managed-mode . flymake-ruff-load))
 
 (use-package rust-mode
   :bind (:map rust-mode-map
@@ -437,15 +450,24 @@
   :bind (:map haskell-mode-map
               ("C-c C-c" . haskell-compile)))
 
+;; Coq support
+(defun trqt/disable-corfu ()
+  "Disable corfu(for company-coq)"
+  (corfu-mode -1))
+(use-package proof-general)
+(use-package company-coq
+  :hook ((coq-mode . company-coq-mode)
+         (coq-mode . trqt/disable-corfu)))
+
 ;; OCaml
 (use-package tuareg
   :mode (("\\.ocamlinit\\'" . tuareg-mode)))
 
 ;; Matrix support
-(use-package ement
-  :ensure (:fetcher github :repo "alphapapa/ement.el"))
+;; (use-package ement
+;;   :vc (:fetcher github :repo "alphapapa/ement.el"))
 
-;; RSS support
+;; ;; RSS support
 (use-package elfeed
   :custom
   (elfeed-db-directory
@@ -490,6 +512,7 @@
   (set (make-local-variable 'TeX-electric-math)
                           (cons "\\(" "\\)")))
 
+;; THE LaTeX mode
 (use-package auctex
   :hook
   ((LaTeX-mode . prettify-symbols-mode)
@@ -500,13 +523,9 @@
   (TeX-fold-mode t)
   (TeX-parse-self t)
   ;;(setq-default TeX-master nil)         ; ask for master file
-  :ensure                               ; needed for installation
-  (auctex :repo "https://git.savannah.gnu.org/git/auctex.git" :branch "main"
-          :pre-build (("make" "elpa"))
-          :build (:not elpaca--compile-info) ;; Make will take care of this step
-          :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
-          :version (lambda (_) (require 'tex-site) AUCTeX-version)))
+ )
 
+;; make ` great again
 (use-package cdlatex
   :custom
   (cdlatex-takeover-dollar nil)
@@ -514,6 +533,7 @@
   (LaTeX-mode . turn-on-cdlatex)
   (org-mode . turn-on-org-cdlatex))
 
+;; Make it trivial to cite papers
 (use-package citar
   :custom
   (org-cite-global-bibliography '("~/docs/references.bib"))
