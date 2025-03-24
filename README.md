@@ -5,3 +5,6 @@ To apply just run:
 chezmoi init --apply trqt
 ```
 That's it!
+
+## Archived: I'm using Nix now
+https://github.com/trqt/mynix
